@@ -283,9 +283,10 @@ abstract class Admiral::Command
       is_bool = type.is_a?(Path) && type.resolve == Bool
       is_enum = type.is_a?(Generic) && type.name.resolve < Enumerable
       is_nil = type.is_a?(Path) && type == Nil
+      is_array = type.resolve == Array(String)
 
       # Cast defaults
-      required = true if default != nil || is_bool
+      required = true if !is_array && default != nil || is_bool
       default = default != nil ? default : is_bool ? false : is_enum ? "#{type}.new".id : nil
       long = (long || var.id.stringify.gsub(/_/, "-")).id.stringify.gsub(/^--/, "").id
 
@@ -318,7 +319,7 @@ abstract class Admiral::Command
       @{{var}} : {{ type }} | Nil{% if default != nil %} = {{ default }}{% end %}
 
       def {{var}}
-        @{{var}}{% if required %}.not_nil!{% end %}
+        @{{var}}{% if required || is_array %}.not_nil!{% end %}
       end
     end
   end
